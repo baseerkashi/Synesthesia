@@ -1,58 +1,42 @@
-# Aura - Music Visualizer (Elite Edition)
+# Aura Cinematic Engine (VJ Platform)
 
-Aura is a high-performance, browser-based music visualization web application. It leverages the HTML5 Canvas API and the Web Audio API to analyze audio frequencies and time-domain waveforms in real-time, translating them into stunning, hardware-accelerated visual art.
+Aura has been overhauled from a simple audio-reactive canvas into an **elite, performance-resilient digital stage organism**. Leveraging a custom hybrid graphics engine (WebGL/Three.js + Canvas2D API) and a deterministic cinematic timeline, Aura acts as an autonomous visual jockey (Auto VJ) capable of driving production-grade visual sets.
 
-## What's New: Phase 1 Elite Update
-Aura has been heavily upgraded to transform from a simple audio-reactive canvas into an intelligent, musical experience:
+## 🚀 Engine Architecture & Spectacles
 
-### 🧠 1. Beat Intelligence Layer
-- **Spectral Flux Tracking**: Aura no longer just looks at raw volume. It calculates the difference in frequency energy between frames to track sudden musical changes.
-- **Adaptive Transient Thresholds**: By keeping a rolling history of the spectral flux, Aura calculates dynamic thresholds to pinpoint kicks, snares, and heavy synth drops with mathematical precision.
-- **Estimated True BPM**: Analyzes intervals between transient spikes to calculate a rolling average of the track's tempo.
+The system relies on a modular `Spectacle` architecture, where distinct, highly-detailed 3D and 2D environments (Spectacles) interpolate seamlessly based on a unified Timeline Engine and global audio-reactive states.
 
-### 🎭 2. Mood Classification Engine & Scene Composer
-- **RMS Energy & Spectral Centroid**: The engine analyzes the perceived loudness (RMS) and the brightness (Centroid) of the audio in real-time.
-- **Procedural Scene Composition**: Based on the mood, Aura's `PRO Auto VJ` mode dynamically composes scenes by pairing one of 19 base geometries with one of 21 color palettes:
-  - **Aggressive (Loud + Bright)**: Triggers Neon/Fire colors with Glitch/Supernova shapes.
-  - **Heavy (Loud + Dark)**: Triggers Bloodmoon/Matrix colors with Geometric/Matrix shapes.
-  - **Euphoric (Medium + Bright)**: Triggers Aurora/Galaxy colors with Kaleidoscope/Currents shapes.
-  - **Chill (Quiet)**: Triggers Ocean/Hologram colors with Particles/Ripple shapes.
-- **Intelligent Cooldowns**: Scene changes are throttled to only happen on major drops or every 5+ seconds, preventing jarring visual flicker.
+### Flagship Visualizers (The Core Spectacles)
+- **Donda Pyramid Spectacle**: A towering, stable monolithic pyramid wrapped in cinematic volumetric fog, divine light shafts, and reactive obsidian textures.
+- **Graduation Rebirth**: A hyper-pop Superflat dimension featuring Murakami-inspired procedural flower systems, hyper-gloss planets, and rainbow stream architecture.
+- **SOFI Orbital Mass**: A colossal anti-gravity arena featuring a massive flexing halo, a pulsing crimson globe that ruptures on drops, and crowd energy ripples.
+- **Neural Bloom**: A living, cosmic intelligence web featuring dynamic spatial hashing, audio-reactive pulse-propagation waves, and floating synaptic blossoms.
+- **Kaleidoscope**: A mathematically pure recursive fractal symmetry engine, drawing deep rotating geometric structures with hallucinatory depth illusion and pattern inversion.
 
-### ✨ 3. YES Mode (Affirmation Overlay Engine)
-- A highly memorable, viral feature that flashes subliminal, cinematic text (`"YES"`, `"PUSH HARDER"`, `"ASCEND"`, `"NO HESITATION"`) exactly on heavy transient beat drops.
+### 🧠 Performance & Engine Systems
+- **Timeline Engine & VJ Intelligence**: A 9-stage deterministic choreographic timeline that drives the overall progression of the visualizers.
+- **Adaptive Performance Manager (60FPS Lock)**: Built to prevent rendering stutter during heavy bass drops via aggressive object pooling (`trackDisposable`) and dynamic LOD adjustments.
+- **Beat Intelligence Layer**: Real-time spectral flux tracking and adaptive transient thresholds accurately detect kicks, snares, and drops.
 
-### 🎛️ 4. Master Volume Control & Web Audio Routing
-- Built a dedicated `GainNode` into the Web Audio API pipeline (`Source ➡️ Analyser ➡️ Master Gain ➡️ Speakers`).
-- Volume slider in the UI now accurately controls the visualizer's global audio output with `setTargetAtTime` for smooth, click-free fading.
+## 🎛️ Audio Pipeline & Reactivity
+Aura reads the physical intensity of sound and maps it into visual physics:
+- **Audio Routing**: Utilizes Web Audio API (`AnalyserNode`) directly from MP3s, System Capture, or Microphone.
+- **Low/Mid/High Binning**: Translates bass drops to camera shake/scale transforms, and treble to particle velocity and lighting intensity.
 
-## Features
+## 🛠️ Setup & Execution
 
-- **Multiple Audio Sources**: 
-  - 📁 **File Upload**: Select any local MP3/WAV file.
-  - 🌐 **Browser Capture**: Capture system or tab audio directly.
-  - 🎤 **Microphone**: Reacts instantly to your voice or ambient room audio.
-  - ⏯️ **Playback Controls**: Play, pause, and volume adjustment built directly into the Now Playing UI.
+### One-Click Start (Windows)
+Simply double-click the included `Run_Visualizer.bat` file. It will automatically initialize the environment, start the local server, and open your web browser.
 
-- **Dynamic Visual Shapes (19 Total)**:
-  - `Retro Grid (Synthwave)`, `Analog Oscilloscope`, `Hyper Vortex`, `Kaleidoscope`, `Orbital`, `Digital Oscillator`, `Spectrogram`, `Quantum Particles`, `Starfield`, `Glitch Core`, `Supernova Burst`, `Matrix 3D Flow`, `Currents`, and more.
-
-- **Premium Aesthetics & Themes (21 Total)**:
-  - Features a glassmorphism UI overlay and smooth micro-animations.
-  - Includes heavily curated color palettes: `Retrowave`, `The Matrix`, `Cyberpunk`, `Aurora`, `Hellfire`, `Deep Ocean`, `Neon`, `Vaporwave`, `Tokyo Drift`, and more.
-  - **Interactive Physics**: Visual geometries bend, repel, and warp based on your mouse movements.
-  - **CRT Scanline Filter**: A toggleable post-processing effect simulating an authentic retro arcade monitor.
-  - **Chromatic Aberration**: Camera shaking and RGB splitting on heavy beat drops.
+### Manual Setup
+1. **Prerequisites**: Ensure you have Node.js installed.
+2. **Install**: Run `npm install` in the project root.
+3. **Run**: Run `npm run dev` to start the Vite development server.
+4. Open the provided `localhost` link in your browser.
+5. In VS Code, you can also use the **Run and Debug** tab ("Launch Music Visualizer").
 
 ## Tech Stack
 - **Framework**: Vite
-- **Core**: Vanilla JavaScript (ES6+), HTML5
-- **Graphics**: HTML5 `<canvas>` (2D Context)
-- **Audio Processing**: Web Audio API (`AudioContext`, `AnalyserNode`, `GainNode`)
-- **Styling**: Pure Vanilla CSS with CSS Variables
-
-## How to Run Locally
-1. Ensure you have Node.js installed.
-2. Run `npm install` to install dependencies.
-3. Run `npm run dev` to start the local development server.
-4. Open the provided `localhost` link in your browser.
+- **Graphics Pipeline**: Three.js (WebGL 3D Spectacles) + HTML5 Canvas (2D Spectacles)
+- **Audio Processing**: Web Audio API
+- **Styling**: Vanilla CSS (Glassmorphism & Thematic Overlays)
