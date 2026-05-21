@@ -4,6 +4,7 @@ import { themes } from '../config/themes.js';
 import * as sofiOrbital from './spectacle/sofiOrbital.js';
 import * as graduationRebirth from './spectacle/graduationRebirth.js';
 import * as dondaPyramid from './spectacle/dondaPyramid.js';
+import * as parisFracture from './spectacle/parisFracture.js';
 
 let renderer, scene, camera;
 const disposables = [];
@@ -30,8 +31,10 @@ export function initWebGL(canvas) {
 
   sofiOrbital.initSofiOrbital(scene, trackDisposable);
   graduationRebirth.initGraduationRebirth(scene, trackDisposable);
+  parisFracture.initParisFracture(scene, trackDisposable);
   sofiOrbital.hideSofi();
   graduationRebirth.hideGrad();
+  parisFracture.hideParis();
 
   return getWebGLContext();
 }
@@ -40,6 +43,7 @@ function hideAllWebGLGroups() {
   dondaPyramid.hideDonda();
   sofiOrbital.hideSofi();
   graduationRebirth.hideGrad();
+  parisFracture.hideParis();
 }
 
 export function resizeWebGL(width, height) {
@@ -57,6 +61,7 @@ export function getWebGLContext() {
     dondaGroup: dondaPyramid.getDondaGroup(),
     graduationGroup: graduationRebirth.getGradGroup(),
     sofiGroup: sofiOrbital.getSofiGroup(),
+    parisGroup: parisFracture.getParisGroup(),
   };
 }
 
@@ -73,18 +78,25 @@ export function drawDondaPyramid(volume, bassBin, trebleBin, themeStr) {
   dondaPyramid.drawDondaPyramid(volume, bassBin, trebleBin, camera, renderer, scene, themeStr);
 }
 
-export function drawSofiOrbital(volume, bassBin, trebleBin) {
+export function drawSofiOrbital(volume, bassBin, trebleBin, themeStr) {
   if (!renderer) return;
   hideAllWebGLGroups();
   sofiOrbital.showSofi();
-  sofiOrbital.drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, scene);
+  sofiOrbital.drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, scene, themeStr);
 }
 
 export function drawGraduationStardrive(volume, bassBin, trebleBin, themeStr) {
   if (!renderer) return;
   hideAllWebGLGroups();
   graduationRebirth.showGrad();
-  graduationRebirth.drawGraduationRebirth(volume, bassBin, trebleBin, camera, renderer, scene);
+  graduationRebirth.drawGraduationRebirth(volume, bassBin, trebleBin, camera, renderer, scene, themeStr);
+}
+
+export function drawParisFracture(volume, bassBin, trebleBin) {
+  if (!renderer) return;
+  hideAllWebGLGroups();
+  parisFracture.showParis();
+  parisFracture.drawParisFracture(volume, bassBin, trebleBin, camera, renderer, scene);
 }
 
 export function disposeWebGL() {

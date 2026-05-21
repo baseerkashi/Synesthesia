@@ -9,6 +9,9 @@ let dondaCross;
 let starField1, starField2;
 let cloudParticles = [];
 let lightShafts = [];
+let floatingCubes = [];
+let crowdParticles;
+let stadiumLights = [];
 let initDone = false;
 
 function makeCloudTexture() {
@@ -136,6 +139,45 @@ export function initDondaPyramid(scene, trackDisposable) {
     lightShafts.push(shaft);
   }
 
+  // Floating Obelisks / Debris
+  const cubeGeo = trackDisposable(new THREE.BoxGeometry(20, 40, 20));
+  const cubeMat = trackDisposable(new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 }));
+  for (let i = 0; i < 40; i++) {
+    const cube = new THREE.Mesh(cubeGeo, cubeMat);
+    cube.position.set((Math.random() - 0.5) * 2000, Math.random() * 800, (Math.random() - 0.5) * 2000);
+    cube.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    cube.userData = { speed: Math.random() * 0.02, axis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize() };
+    dondaGroup.add(cube);
+    floatingCubes.push(cube);
+  }
+
+  // Massive Crowd (Particles at ground level)
+  const crowdGeo = trackDisposable(new THREE.BufferGeometry());
+  const crowdPos = new Float32Array(5000 * 3);
+  for (let i = 0; i < 5000; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = 400 + Math.random() * 2000; // Crowd surrounds pyramid
+    crowdPos[i * 3] = Math.cos(angle) * r;
+    crowdPos[i * 3 + 1] = 5 + Math.random() * 20; // Slight height variation
+    crowdPos[i * 3 + 2] = Math.sin(angle) * r;
+  }
+  crowdGeo.setAttribute('position', new THREE.BufferAttribute(crowdPos, 3));
+  const crowdMat = trackDisposable(new THREE.PointsMaterial({ color: 0xffffff, size: 8, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending }));
+  crowdParticles = new THREE.Points(crowdGeo, crowdMat);
+  dondaGroup.add(crowdParticles);
+
+  // Stadium Lights (Rings of light beams)
+  const stadiumGeo = trackDisposable(new THREE.CylinderGeometry(2, 40, 2000, 16, 1, true));
+  const stadiumMat = trackDisposable(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  for (let i = 0; i < 12; i++) {
+    const beam = new THREE.Mesh(stadiumGeo, stadiumMat);
+    const angle = (i / 12) * Math.PI * 2;
+    beam.position.set(Math.cos(angle) * 1200, 1000, Math.sin(angle) * 1200);
+    beam.lookAt(0, 200, 0); // Point at pyramid
+    dondaGroup.add(beam);
+    stadiumLights.push(beam);
+  }
+
   initDone = true;
   return dondaGroup;
 }
@@ -197,12 +239,51 @@ export function drawDondaPyramid(volume, bassBin, trebleBin, camera, renderer, s
     shaft.material.color.setRGB(theme.secondary[0]/255, theme.secondary[1]/255, theme.secondary[2]/255);
   });
 
+  // Floating cubes
+  floatingCubes.forEach((cube) => {
+    cube.position.y += Math.sin(time * 0.002) * 2;
+    cube.rotateOnAxis(cube.userData.axis, cube.userData.speed + bassBin * 0.05);
+    cube.material.emissive.setRGB(theme.primary[0]/255 * bassBin * 0.5, theme.primary[1]/255 * bassBin * 0.5, theme.primary[2]/255 * bassBin * 0.5);
+  });
+
+  // Crowd wave
+  if (crowdParticles) {
+    crowdParticles.position.y = Math.sin(time * 0.005) * 10 * bassBin;
+    crowdParticles.material.opacity = 0.2 + bassBin * 0.4;
+    crowdParticles.material.color.setRGB(theme.secondary[0]/255, theme.secondary[1]/255, theme.secondary[2]/255);
+  }
+
+  // Stadium Lights
+  stadiumLights.forEach((beam, i) => {
+    beam.material.opacity = 0.05 + bassBin * 0.15;
+    beam.material.color.setRGB(theme.primary[0]/255, theme.primary[1]/255, theme.primary[2]/255);
+    if (bassBin > 0.8 && i % 2 === 0) {
+      beam.material.color.setRGB(1, 1, 1);
+      beam.material.opacity = 0.3;
+    }
+  });
+
+  // Reactive shake on the pyramid itself
+  if (bassBin > 0.8) {
+    const shake = (bassBin - 0.8) * 100;
+    dondaPyramid.position.x = (Math.random() - 0.5) * shake;
+    dondaPyramid.position.z = (Math.random() - 0.5) * shake;
+    dondaCross.position.x = (Math.random() - 0.5) * shake;
+    dondaCross.position.z = (Math.random() - 0.5) * shake;
+  } else {
+    dondaPyramid.position.x = 0;
+    dondaPyramid.position.z = 0;
+    dondaCross.position.x = 0;
+    dondaCross.position.z = 0;
+  }
+
   // Camera logic - STRICTLY CLAMPED TO PREVENT FLIPPING
   if (runtime.isMouseInteractive) {
     const targetX = (runtime.mouseX - window.innerWidth / 2) * 0.8;
     const targetY = -(runtime.mouseY - window.innerHeight / 2) * 0.5 + 250;
     camera.position.x += (targetX - camera.position.x) * 0.05;
     camera.position.y += (targetY - camera.position.y) * 0.05;
+    camera.position.z += (800 - camera.position.z) * 0.05;
   } else {
     camera.position.x = Math.sin(time * 0.0001) * 800;
     camera.position.z = Math.cos(time * 0.0001) * 800;

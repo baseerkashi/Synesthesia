@@ -1,0 +1,496 @@
+/* SYNESTRA — Landing Page CSS */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap');
+
+:root {
+  --bg-dark: #020204;
+  --text-main: #f0f0f5;
+  --text-muted: #8a8a9e;
+  --accent-gold: #ffb700;
+  --accent-blue: #00f0ff;
+  --accent-pink: #ff2d95;
+  --glass-bg: rgba(15, 15, 20, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Background Canvas */
+#hero-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.vignette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Scroll Container */
+.landing-scroll-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* SECTION 1: HERO IMMERSION */
+.hero-section {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-badge {
+  font-size: 0.7rem;
+  letter-spacing: 5px;
+  color: var(--accent-gold);
+  border: 1px solid rgba(255,183,0,0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  background: rgba(255,183,0,0.05);
+  display: inline-block;
+  backdrop-filter: blur(10px);
+}
+
+.hero-title {
+  font-size: 8vw;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+}
+
+.btn-primary {
+  position: relative;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 16px 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  border-radius: 30px;
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-primary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.btn-primary:hover .btn-glow {
+  transform: translate(-50%, -50%) scale(2);
+  opacity: 0.2;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.btn-secondary:hover {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Glass UI Panel */
+.hero-glass-panel {
+  position: absolute;
+  right: clamp(24px, 7vw, 96px);
+  bottom: clamp(28px, 8vh, 72px);
+  width: 320px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.02);
+  transition: transform 0.1s ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+}
+
+.dot-group {
+  display: flex;
+  gap: 6px;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.dot.red { background: #ff4444; }
+.dot.yellow { background: #ffbb33; }
+.dot.green { background: #00C851; box-shadow: 0 0 8px #00C851; }
+
+.panel-title {
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: #aaa;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+.stat-label { color: #666; }
+.stat-value { color: #fff; text-align: right;}
+.text-green { color: #00C851; text-shadow: 0 0 5px rgba(0,200,80,0.5); }
+
+.waveform-mini {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 20px;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.waveform-mini .bar {
+  width: 12%;
+  background: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+  border-radius: 2px 2px 0 0;
+  animation: pulse-bar 1s infinite alternate ease-in-out;
+}
+.waveform-mini .bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform-mini .bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform-mini .bar:nth-child(4) { animation-delay: 0.3s; }
+.waveform-mini .bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes pulse-bar {
+  0% { transform: scaleY(0.4); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* SECTION 2: THE ERA ENGINE */
+.era-section {
+  padding: 10rem 2rem;
+  min-height: 100vh;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.section-header h2 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+}
+
+.section-header p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.horizontal-scroll {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 2rem 5vw;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.era-card {
+  min-width: 400px;
+  height: 500px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  scroll-snap-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1), box-shadow 0.4s;
+  cursor: pointer;
+}
+
+.era-card-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s ease;
+  filter: brightness(0.4) saturate(0.8);
+}
+
+.era-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 30px color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.era-card:hover .era-card-bg {
+  transform: scale(1.1);
+  filter: brightness(0.8) saturate(1.2);
+}
+
+.era-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 30px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+
+.era-card:hover .era-card-content {
+  transform: translateY(0);
+}
+
+.era-card h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.era-card p {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+/* Mock backgrounds for era cards */
+.bg-paris { background: radial-gradient(circle at center, #332200, #000); }
+.bg-donda { background: linear-gradient(135deg, #222, #000); }
+.bg-grad { background: radial-gradient(circle at top right, #550055, #000); }
+.bg-sofi { background: radial-gradient(circle at bottom, #440000, #000); }
+.bg-tlop { background: linear-gradient(to right, #442200, #000); }
+
+/* SECTION 3: FEATURES */
+.features-section {
+  padding: 8rem 5vw;
+  background: rgba(5,5,8,0.8);
+  border-top: 1px solid rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-panel {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 40px 30px;
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+
+.feature-panel:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-5px);
+}
+
+.fp-icon {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: var(--accent-gold);
+}
+
+.feature-panel h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.feature-panel p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* SECTION 5: AUDIENCE */
+.audience-section {
+  padding: 10rem 5vw;
+}
+
+.audience-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.audience-card {
+  font-size: 3rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.1);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  transition: all 0.4s;
+  cursor: default;
+  text-align: center;
+}
+
+.audience-card:hover {
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255,255,255,0.8);
+  transform: scale(1.05);
+}
+
+/* SECTION 6: PHILOSOPHY */
+.philosophy-section {
+  padding: 15rem 2rem;
+  text-align: center;
+  background: #000;
+}
+
+.philosophy-title {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+}
+
+.philosophy-subtext {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+/* SECTION 7: CTA */
+.cta-section {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.eclipse-halo {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  box-shadow: 0 0 150px rgba(255,183,0,0.1), inset 0 0 100px #000;
+  border: 1px solid rgba(255,255,255,0.05);
+  z-index: 1;
+  animation: halo-rotate 20s linear infinite;
+}
+
+@keyframes halo-rotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.cta-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.cta-content h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  margin-bottom: 3rem;
+}
+
+.btn-primary.huge {
+  font-size: 1.2rem;
+  padding: 20px 60px;
+}

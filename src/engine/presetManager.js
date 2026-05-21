@@ -19,8 +19,8 @@ export function applyPresetHydration(preset, dom) {
   runtime.perfScale = 1.0;
   clearBeatState();
   resetTimelineState();
-  localStorage.setItem('aura_theme', preset.theme);
-  localStorage.setItem('aura_shape', preset.shape);
+  localStorage.setItem('synestra_theme', preset.theme);
+  localStorage.setItem('synestra_shape', preset.shape);
   if (!isWebGLShape(preset.shape)) resetWebGLCamera();
   if (isSpectacleMode(prev) && isSpectacleMode(preset.shape)) {
     onSpectacleShapeChange(prev, preset.shape);
@@ -38,7 +38,7 @@ export function switchTheme(themeId, dom) {
   if (runtime.currentTheme === themeId) return;
   runtime.currentTheme = themeId;
   if (dom.themeSelector) dom.themeSelector.value = themeId;
-  localStorage.setItem('aura_theme', themeId);
+  localStorage.setItem('synestra_theme', themeId);
   if (dom.presetSelector) dom.presetSelector.value = 'none';
 }
 
@@ -47,7 +47,7 @@ export function switchShape(shapeId, dom) {
   const prev = runtime.currentShape;
   runtime.currentShape = shapeId;
   if (dom.shapeSelector) dom.shapeSelector.value = shapeId;
-  localStorage.setItem('aura_shape', shapeId);
+  localStorage.setItem('synestra_shape', shapeId);
   if (dom.presetSelector) dom.presetSelector.value = 'none';
   if (isWebGLShape(prev) && !isWebGLShape(shapeId)) resetWebGLCamera();
   if (isSpectacleMode(prev) && isSpectacleMode(shapeId)) onSpectacleShapeChange(prev, shapeId);

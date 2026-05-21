@@ -2,191 +2,178 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/aura-logo.png" />
+    <link rel="icon" type="image/png" href="/synestra-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aura - Music Visualizer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>SYNESTRA — Cinematic Music Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/landing.css">
   </head>
   <body>
-    <div id="app">
-      <div id="art-background" class="art-background">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        <div class="huge-text">AURA</div>
-      </div>
-      <canvas id="webgl-canvas"></canvas>
-      <canvas id="visualizer"></canvas>
+    <!-- Background Canvas for Live Rendering -->
+    <canvas id="hero-canvas"></canvas>
+    <div class="vignette-overlay"></div>
+
+    <main class="landing-scroll-container">
       
-      <!-- Diagnostic HUD -->
-      <div id="diagnostic-hud" class="hidden" style="position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #00ff00; pointer-events: none;">
-        <div>FPS: <span id="hud-fps">0</span></div>
-        <div>Frame Time: <span id="hud-frametime">0</span>ms</div>
-        <div>Variance: <span id="hud-variance">0</span>ms</div>
-        <div>Timeline State: <span id="hud-state">1 (Dormant)</span></div>
-        <div>Perf Scale: <span id="hud-perf">1.00</span></div>
-        <div>Draw Calls (Est): <span id="hud-drawcalls">0</span></div>
-        <div>GPU Pressure: <span id="hud-gpu">Low</span></div>
-        <div>Output Latency: <span id="hud-latency">0</span>ms</div>
-        <div>Est. BPM: <span id="hud-sync">120</span></div>
-        <div>Shader Complexity: <span id="hud-shader">Optimized</span></div>
-        <div style="color: #666; margin-top: 5px;">Toggle: CTRL+SHIFT+D</div>
-      </div>
-      
-      <!-- Now Playing Overlay -->
-      <div id="now-playing" class="hidden">
-        <div class="track-icon">🎵</div>
-        <div class="track-info">
-          <div class="track-label">NOW PLAYING</div>
-          <div id="track-name">Unknown Track</div>
+      <!-- SECTION 1: HERO IMMERSION -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="hero-badge">EXPERIMENTAL PERFORMANCE ENGINE</div>
+          <h1 class="hero-title">SEE MUSIC<br>BEFORE IT EXISTS</h1>
+          <p class="hero-subtitle">
+            AI-powered cinematic music visualization and stage ideation platform<br>
+            for artists, producers, and creative directors.
+          </p>
+          <div class="hero-actions">
+            <a href="/app.html" class="btn-primary">
+              <span class="btn-text">ENTER SYNESTRA</span>
+              <div class="btn-glow"></div>
+            </a>
+            <button id="btn-watch" class="btn-secondary">WATCH THE WORLD FORM</button>
+          </div>
         </div>
-        <div class="playback-controls">
-          <button id="play-pause-btn" class="control-btn">⏸</button>
+
+        <div class="hero-glass-panel">
+          <div class="panel-header">
+            <div class="dot-group">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+            </div>
+            <div class="panel-title">SYNESTRA // LIVE ENGINE</div>
+          </div>
+          <div class="panel-body">
+            <div class="stat-row">
+              <span class="stat-label">ACTIVE CORE</span>
+              <span class="stat-value" id="hud-core">PARIS FRACTURE X</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">TIMELINE STATE</span>
+              <span class="stat-value">PHASE 4 : COLLAPSE</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">AUDIO SYNC</span>
+              <span class="stat-value text-green">LOCKED / 120 BPM</span>
+            </div>
+            <div class="waveform-mini">
+              <div class="bar" style="height: 40%"></div>
+              <div class="bar" style="height: 80%"></div>
+              <div class="bar" style="height: 60%"></div>
+              <div class="bar" style="height: 100%"></div>
+              <div class="bar" style="height: 30%"></div>
+              <div class="bar" style="height: 90%"></div>
+              <div class="bar" style="height: 50%"></div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div id="ui-layer" class="glass-panel">
-        <div class="header">
-          <img src="/aura-logo.png" alt="Aura Logo" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-          <h1>AURA</h1>
-          <p class="subtitle">The Nexus of Sound and Light</p>
+      </section>
+
+      <!-- SECTION 2: THE ERA ENGINE -->
+      <section class="era-section">
+        <div class="section-header">
+          <h2>THE ERA ENGINE</h2>
+          <p>Architectural universes mapped to specific sonic identities.</p>
         </div>
         
-        <div class="instructions">
-          <p>Experience your music visually. Choose an audio source below.</p>
+        <div class="horizontal-scroll">
+          <div class="era-card" style="--accent: #ffb700;">
+            <div class="era-card-bg bg-paris"></div>
+            <div class="era-card-content">
+              <h3>PARIS FRACTURE X</h3>
+              <p>Luxury mirrored collapse.</p>
+            </div>
+          </div>
+          <div class="era-card" style="--accent: #ffffff;">
+            <div class="era-card-bg bg-donda"></div>
+            <div class="era-card-content">
+              <h3>DONDA PYRAMID</h3>
+              <p>Divine monolithic ascension.</p>
+            </div>
+          </div>
+          <div class="era-card" style="--accent: #ff2d95;">
+            <div class="era-card-bg bg-grad"></div>
+            <div class="era-card-content">
+              <h3>GRADUATION REBIRTH</h3>
+              <p>Murakami cosmic rebirth.</p>
+            </div>
+          </div>
+          <div class="era-card" style="--accent: #8b0a1a;">
+            <div class="era-card-bg bg-sofi"></div>
+            <div class="era-card-content">
+              <h3>SOFI ORBITAL MASS</h3>
+              <p>Stadium energy warfare.</p>
+            </div>
+          </div>
+          <div class="era-card" style="--accent: #ff5a00;">
+            <div class="era-card-bg bg-tlop"></div>
+            <div class="era-card-content">
+              <h3>THE PABLO SPLIT</h3>
+              <p>Dueling ecstasy and divinity.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: BUILD PERFORMANCE WORLDS -->
+      <section class="features-section">
+        <div class="section-header">
+          <h2>BUILD PERFORMANCE WORLDS</h2>
+          <p>The tools to sequence, command, and capture light.</p>
         </div>
         
-        <div class="audio-options">
-          <label for="file-upload" class="glow-on-hover small-btn">
-            <span class="btn-icon">📁</span>
-            <span class="btn-text">Upload MP3/WAV</span>
-          </label>
-          <input type="file" id="file-upload" accept="audio/*" style="display: none;">
+        <div class="feature-grid">
+          <div class="feature-panel">
+            <div class="fp-icon">▦</div>
+            <h3>Performance Grid</h3>
+            <p>29 hotkey-mapped visualizers for instant, zero-latency stage switching.</p>
+          </div>
+          <div class="feature-panel">
+            <div class="fp-icon">⏺</div>
+            <h3>Direct Export</h3>
+            <p>Native WebM rendering. Capture high-fidelity 60fps cinematic loops directly from the engine.</p>
+          </div>
+          <div class="feature-panel">
+            <div class="fp-icon">🎨</div>
+            <h3>Theme Builder</h3>
+            <p>Live hex-color manipulation to craft artist-specific visual palettes.</p>
+          </div>
+          <div class="feature-panel">
+            <div class="fp-icon">⚡</div>
+            <h3>Adaptive Engine</h3>
+            <p>Spatial hashing and frame-pacing automatically scale rendering to maintain flawless performance.</p>
+          </div>
+        </div>
+      </section>
 
-          <button id="tab-audio-btn" class="glow-on-hover small-btn" style="background: rgba(255, 0, 80, 0.2); border-color: rgba(255,0,80,0.5);">
-            <span class="btn-icon">🌐</span>
-            <span class="btn-text">Capture Browser / YouTube</span>
-          </button>
+      <!-- SECTION 5: WHO IT'S FOR -->
+      <section class="audience-section">
+        <div class="audience-grid">
+          <div class="audience-card">ARTISTS</div>
+          <div class="audience-card">PRODUCERS</div>
+          <div class="audience-card">CREATIVE DIRECTORS</div>
+          <div class="audience-card">STAGE DESIGNERS</div>
+          <div class="audience-card">VISUAL ARCHITECTS</div>
+        </div>
+      </section>
 
-          <button id="mic-btn" class="glow-on-hover small-btn">
-            <span class="btn-icon">🎤</span>
-            <span class="btn-text">Use Microphone</span>
-          </button>
-        </div>
+      <!-- SECTION 6: PRODUCT PHILOSOPHY -->
+      <section class="philosophy-section">
+        <h2 class="philosophy-title">STOP IMAGINING THE STAGE.<br>BUILD IT.</h2>
+        <p class="philosophy-subtext">Transform sound into living visual architecture.</p>
+      </section>
 
-        <div id="status" class="status-hidden">Waiting for audio source...</div>
-        
-        <!-- Hidden audio element for file/demo playing -->
-        <audio id="audio-player" crossorigin="anonymous"></audio>
-      </div>
+      <!-- SECTION 7: FINAL CTA -->
+      <section class="cta-section">
+        <div class="eclipse-halo"></div>
+        <div class="cta-content">
+          <h2>ENTER THE CINEMATIC ENGINE</h2>
+          <a href="/app.html" class="btn-primary huge">
+            <span class="btn-text">LAUNCH SYNESTRA</span>
+            <div class="btn-glow"></div>
+          </a>
+        </div>
+      </section>
 
-      <button id="fullscreen-btn" class="settings-btn hidden" style="right: 170px;">⛶ Fullscreen</button>
-      <button id="toggle-settings-btn" class="settings-btn hidden">⚙️ Settings</button>
-      
-      <div id="controls-panel" class="glass-panel hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px;">
-          <h2 style="margin: 0; border: none; padding: 0;">Visual Settings</h2>
-          <button id="close-settings-btn" style="background: none; border: none; color: #8a8a9e; cursor: pointer; font-size: 1.2rem;">✖</button>
-        </div>
-        <div class="control-group">
-          <label>Sensitivity</label>
-          <input type="range" id="sensitivity" min="0.5" max="2.5" step="0.1" value="1.5">
-        </div>
-        <div class="control-group">
-          <label>Color Theme</label>
-          <select id="theme-selector">
-            <optgroup label="Era Palettes">
-              <option value="tlop">The Pablo Split (TLOP)</option>
-              <option value="yeezus">Iron Reckoning (Yeezus)</option>
-            </optgroup>
-            <optgroup label="Standard Palettes">
-              <option value="cyberpunk">Cyberpunk</option>
-              <option value="retrowave">Retrowave</option>
-              <option value="matrix">The Matrix</option>
-              <option value="aurora">Aurora</option>
-              <option value="fire">Hellfire</option>
-              <option value="ocean">Deep Ocean</option>
-              <option value="neon">Neon</option>
-              <option value="galaxy">Galaxy</option>
-              <option value="synthgold">Synth Gold</option>
-              <option value="bloodmoon">Blood Moon</option>
-              <option value="flow">Chromatic Flow</option>
-              <option value="void">The Void</option>
-              <option value="hologram">Hologram</option>
-              <option value="sunset">Retro Sunset</option>
-              <option value="emerald">Emerald City</option>
-              <option value="acid">Acid Trip</option>
-              <option value="vaporwave">Vaporwave</option>
-              <option value="midnight">Midnight</option>
-              <option value="tokyo">Tokyo Drift</option>
-              <option value="outrun">Outrun</option>
-              <option value="cosmic">Cosmic Energy</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="control-group">
-          <label>Shape</label>
-          <select id="shape-selector">
-            <optgroup label="The Eras (Cinematic)">
-              <option value="sofi_orbital">SOFI Orbital Mass [3D]</option>
-              <option value="graduation_stardrive">Graduation Rebirth [3D]</option>
-              <option value="donda_pyramid">Donda (Pyramid Stage) [3D]</option>
-              <option value="phantom_district">The Pablo Split (TLOP)</option>
-              <option value="iron_reckoning">Iron Reckoning (Yeezus)</option>
-            </optgroup>
-            <optgroup label="Elite Modes">
-              <option value="blackhole">Black Hole Collapse</option>
-              <option value="liquidplasma">Liquid Plasma</option>
-              <option value="cathedral">Apocalypse Cathedral</option>
-              <option value="fractalbloom">Fractal Bloom</option>
-              <option value="neuralbloom">Neural Bloom</option>
-            </optgroup>
-            <optgroup label="Standard Visualizers">
-              <option value="synthwave">Retro Grid (Synthwave)</option>
-              <option value="oscilloscope">Analog Oscilloscope</option>
-              <option value="vortex">Hyper Vortex</option>
-              <option value="kaleidoscope">Kaleidoscope</option>
-              <option value="circle">Orbital</option>
-              <option value="wave">Digital Oscillator</option>
-              <option value="bars">Spectrogram</option>
-              <option value="particles">Quantum Particles</option>
-              <option value="starfield">Starfield</option>
-              <option value="plasma">Plasma</option>
-              <option value="ripple">Ripple</option>
-              <option value="supernova">Supernova Burst</option>
-              <option value="geometric">Geometric Core</option>
-              <option value="tunnel">Infinity Tunnel</option>
-              <option value="glitch">Glitch Core (Crazy)</option>
-              <option value="matrix_rain">Matrix 3D Flow</option>
-              <option value="dna_helix">Cyber Lattice</option>
-              <option value="pulse_ring">Quantum Tesseract</option>
-              <option value="currents">Currents (Tame Impala)</option>
-            </optgroup>
-          </select>
-        </div>
+    </main>
 
-        <div class="control-group checkbox-group highlight-checkbox">
-          <input type="checkbox" id="auto-vj-toggle">
-          <label for="auto-vj-toggle"><strong>🔥 PRO Auto VJ (Intensity Reactive)</strong></label>
-        </div>
-        <div class="control-group checkbox-group">
-          <input type="checkbox" id="auto-color-toggle">
-          <label for="auto-color-toggle">Auto Color Flow (Rainbow)</label>
-        </div>
-        <div class="control-group checkbox-group">
-          <input type="checkbox" id="mouse-interaction-toggle" checked>
-          <label for="mouse-interaction-toggle">Interactive Mouse Physics</label>
-        </div>
-        
-        <div class="control-group checkbox-group">
-          <input type="checkbox" id="crt-toggle">
-          <label for="crt-toggle">CRT Scanline Filter</label>
-        </div>
-        <button id="stop-btn" class="secondary-btn">Disconnect</button>
-      </div>
-      
-      <div id="crt-overlay" class="hidden"></div>
-    </div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/landing.js"></script>
   </body>
 </html>

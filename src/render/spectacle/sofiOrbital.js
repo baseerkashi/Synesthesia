@@ -13,6 +13,8 @@ const PALETTE = {
 let sofiGroup, haloRing, haloSegments, crimsonGlobe, globeShell, fogPlane;
 let shockwaves = [], fractures = [], rippleRings = [];
 let arenaLights = [];
+let stadiumSearchlights = [];
+let crowdSwarm, auraGlow;
 let initDone = false;
 let camOrbit = 0;
 
@@ -89,6 +91,19 @@ export function initSofiOrbital(scene, trackDisposable) {
   globeShell.position.copy(crimsonGlobe.position);
   sofiGroup.add(globeShell);
 
+  // Pulsating Aura
+  const auraGeo = trackDisposable(new THREE.SphereGeometry(150, 32, 32));
+  const auraMat = trackDisposable(new THREE.MeshBasicMaterial({
+    color: PALETTE.crimson,
+    transparent: true,
+    opacity: 0.15,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide
+  }));
+  auraGlow = new THREE.Mesh(auraGeo, auraMat);
+  auraGlow.position.copy(crimsonGlobe.position);
+  sofiGroup.add(auraGlow);
+
   const fogGeo = trackDisposable(new THREE.PlaneGeometry(5000, 5000, 32, 32));
   const fogMat = trackDisposable(new THREE.MeshStandardMaterial({
     color: 0x1a0008,
@@ -101,6 +116,50 @@ export function initSofiOrbital(scene, trackDisposable) {
   fogPlane.rotation.x = -Math.PI / 2;
   fogPlane.position.y = -150;
   sofiGroup.add(fogPlane);
+
+  // Massive Sweeping Searchlights
+  const searchlightGeo = trackDisposable(new THREE.CylinderGeometry(5, 80, 4000, 16, 1, true));
+  const searchlightMat = trackDisposable(new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.08,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  }));
+  
+  for (let i = 0; i < 16; i++) {
+    const beam = new THREE.Mesh(searchlightGeo, searchlightMat);
+    const angle = (i / 16) * Math.PI * 2;
+    beam.position.set(Math.cos(angle) * 800, -100, Math.sin(angle) * 800);
+    // Beams initially point straight up, we'll rotate in render loop
+    beam.geometry.translate(0, 2000, 0); 
+    beam.userData = { angle, speed: 0.5 + Math.random(), offset: Math.random() * Math.PI * 2 };
+    sofiGroup.add(beam);
+    stadiumSearchlights.push(beam);
+  }
+
+  // Swirling Crowd Particles
+  const crowdGeo = trackDisposable(new THREE.BufferGeometry());
+  const crowdPos = new Float32Array(8000 * 3);
+  for (let i = 0; i < 8000; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = 200 + Math.random() * 800;
+    crowdPos[i * 3] = Math.cos(angle) * r;
+    crowdPos[i * 3 + 1] = -140 + Math.random() * 40;
+    crowdPos[i * 3 + 2] = Math.sin(angle) * r;
+  }
+  crowdGeo.setAttribute('position', new THREE.BufferAttribute(crowdPos, 3));
+  const crowdMat = trackDisposable(new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 6,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  }));
+  crowdSwarm = new THREE.Points(crowdGeo, crowdMat);
+  sofiGroup.add(crowdSwarm);
 
   initDone = true;
   return sofiGroup;
@@ -182,8 +241,8 @@ export function drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, sc
   haloRing.rotation.z += 0.002 * (1 + bassBin * 2);
   const haloScale = 1 + bassBin * 0.15;
   haloRing.scale.set(haloScale, haloScale, 1);
-  haloRing.material.emissive.lerpColors(new THREE.Color(PALETTE.crimson), tColor, 0.5);
-  haloRing.material.color.lerpColors(new THREE.Color(PALETTE.crimson), tColor, 0.5);
+  haloRing.material.emissive.copy(tColor);
+  haloRing.material.color.copy(tColor);
 
   // Halo Segments Fracture
   haloSegments.rotation.y += 0.001;
@@ -198,7 +257,7 @@ export function drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, sc
   arenaLights.forEach((al, i) => {
     const pulse = 0.5 + bassBin * 3 + Math.sin(time * 5 + i * 0.5) * 0.5;
     al.light.intensity = beat ? pulse * 5 : pulse * 2;
-    al.light.color.lerpColors(new THREE.Color(PALETTE.gold), tSecColor, 0.5);
+    al.light.color.copy(tSecColor);
   });
 
   // Center Globe Rupture and Breathe
@@ -209,13 +268,42 @@ export function drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, sc
   globeShell.rotation.x = Math.sin(time * 0.8) * 0.2;
   
   crimsonGlobe.material.emissiveIntensity = 0.8 + bassBin * 2.0;
-  crimsonGlobe.material.emissive.lerpColors(new THREE.Color(PALETTE.crimson), tColor, 0.7);
-  crimsonGlobe.material.color.lerpColors(new THREE.Color(PALETTE.crimson), tColor, 0.7);
-  globeShell.material.color.lerpColors(new THREE.Color(PALETTE.gold), tSecColor, 0.6);
+  crimsonGlobe.material.emissive.copy(tColor);
+  crimsonGlobe.material.color.copy(tColor);
+  globeShell.material.color.copy(tSecColor);
+  
+  // Aura logic
+  auraGlow.scale.setScalar(globeScale * (1.2 + bassBin * 0.4));
+  auraGlow.material.color.copy(tColor);
+  auraGlow.material.opacity = 0.1 + bassBin * 0.2;
+
+  // Searchlights
+  stadiumSearchlights.forEach((beam) => {
+    beam.material.color.copy(tSecColor);
+    beam.material.opacity = 0.02 + bassBin * 0.15;
+    // Dramatic sweeping
+    const sweep = Math.sin(time * beam.userData.speed + beam.userData.offset);
+    beam.rotation.z = sweep * 0.5;
+    beam.rotation.x = Math.cos(time * beam.userData.speed * 0.8 + beam.userData.offset) * 0.3;
+    
+    // Intense flashes on heavy beat drops
+    if (bassBin > 0.85 && Math.random() > 0.5) {
+      beam.material.color.setRGB(1, 1, 1);
+      beam.material.opacity = 0.4;
+    }
+  });
+
+  // Crowd Swarm
+  if (crowdSwarm) {
+    crowdSwarm.rotation.y += 0.002 * (1 + bassBin);
+    crowdSwarm.material.color.copy(tSecColor);
+    crowdSwarm.material.opacity = 0.3 + bassBin * 0.5;
+    crowdSwarm.position.y = Math.sin(time * 5) * 5 * bassBin;
+  }
 
   // Crowd Energy Waves (Fog Plane Ripple)
   fogPlane.material.opacity = 0.5 + bassBin * 0.4;
-  fogPlane.material.color.lerpColors(new THREE.Color(0x1a0008), tColor, 0.3);
+  fogPlane.material.color.copy(tColor);
   const pos = fogPlane.geometry.attributes.position;
   for(let i=0; i<pos.count; i++) {
     const x = pos.getX(i);
@@ -278,6 +366,7 @@ export function drawSofiOrbital(volume, bassBin, trebleBin, camera, renderer, sc
     const ty = -(runtime.mouseY - window.innerHeight / 2) * 0.4 + 200 + ascension;
     camera.position.x += (tx - camera.position.x) * 0.05;
     camera.position.y += (ty - camera.position.y) * 0.05;
+    camera.position.z += (750 - camera.position.z) * 0.05;
   } else {
     camera.position.x = Math.sin(camOrbit) * 750;
     camera.position.z = Math.cos(camOrbit) * 750;

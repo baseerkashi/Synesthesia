@@ -10,7 +10,7 @@ import {
 
 const HEAVY_SHAPES = new Set([
   'cathedral', 'fractalbloom', 'neuralbloom', 'iron_reckoning', 'phantom_district',
-  'blackhole', 'supernova', 'kaleidoscope', 'sofi_orbital',
+  'blackhole', 'supernova', 'kaleidoscope', 'sofi_orbital', 'paris_fracture'
 ]);
 
 const WEBGL_SHAPES = new Set(['donda_pyramid', 'sofi_orbital', 'graduation_stardrive']);
@@ -57,7 +57,7 @@ export async function renderFrame(normalizedVolume, trebleBin) {
     const bassBin = runtime.dataArray[2] / 255;
 
     if (shape === 'sofi_orbital') {
-      r3d.drawSofiOrbital(normalizedVolume, bassBin, trebleBin);
+      r3d.drawSofiOrbital(normalizedVolume, bassBin, trebleBin, runtime.currentTheme);
     } else if (shape === 'graduation_stardrive') {
       r3d.drawGraduationStardrive(normalizedVolume, bassBin, trebleBin, runtime.currentTheme);
     } else {

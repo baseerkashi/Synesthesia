@@ -24,6 +24,7 @@ export const themes = {
   tlop: { bg: [20, 8, 2], primary: [255, 90, 0], secondary: [200, 170, 120] },
   donda: { bg: [5, 0, 5], primary: [200, 10, 20], secondary: [255, 180, 0] },
   graduation: { bg: [240, 248, 255], primary: [255, 45, 149], secondary: [0, 229, 255] },
+  late_registration: { bg: [34, 30, 31], primary: [185, 179, 83], secondary: [133, 48, 130] },
 };
 
 export const activeTheme = {
@@ -70,15 +71,29 @@ export function animateFlowTheme() {
 }
 
 export function applyAutoColorToTheme(t) {
-  const colorTime = performance.now() * 0.0005;
+  const themeKeys = Object.keys(themes).filter(k => k !== 'flow');
+  const len = themeKeys.length;
+  const time = performance.now() * 0.0005;
+  const idx1 = Math.floor(time) % len;
+  const idx2 = (idx1 + 1) % len;
+  const blend = time - Math.floor(time);
+  
+  const t1 = themes[themeKeys[idx1]];
+  const t2 = themes[themeKeys[idx2]];
+  
   t.primary = [
-    Math.floor((Math.sin(colorTime) + 1) * 127.5),
-    Math.floor((Math.sin(colorTime + 2) + 1) * 127.5),
-    Math.floor((Math.sin(colorTime + 4) + 1) * 127.5),
+    lerp(t1.primary[0], t2.primary[0], blend),
+    lerp(t1.primary[1], t2.primary[1], blend),
+    lerp(t1.primary[2], t2.primary[2], blend),
   ];
   t.secondary = [
-    Math.floor((Math.sin(colorTime + Math.PI) + 1) * 127.5),
-    Math.floor((Math.sin(colorTime + Math.PI + 2) + 1) * 127.5),
-    Math.floor((Math.sin(colorTime + Math.PI + 4) + 1) * 127.5),
+    lerp(t1.secondary[0], t2.secondary[0], blend),
+    lerp(t1.secondary[1], t2.secondary[1], blend),
+    lerp(t1.secondary[2], t2.secondary[2], blend),
+  ];
+  t.bg = [
+    lerp(t1.bg[0], t2.bg[0], blend),
+    lerp(t1.bg[1], t2.bg[1], blend),
+    lerp(t1.bg[2], t2.bg[2], blend),
   ];
 }

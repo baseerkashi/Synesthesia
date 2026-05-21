@@ -289,47 +289,112 @@ function drawOscillator(cx, cy, volume, theme) {
 }
 
 function drawSpectrogram(cx, cy, volume, theme) {
-  // 3D Block Spectrogram
-  const bars = 64;
-  const barWidth = (runtime.canvas.width / bars) * 0.7;
-  const gap = (runtime.canvas.width / bars) * 0.3;
-  const maxBarHeight = runtime.canvas.height * 0.4;
+  const time = performance.now() * 0.001;
+  const bars = 96; // Higher resolution
   const step = Math.floor((runtime.analyser.frequencyBinCount / 2) / bars);
+  const bassBin = runtime.dataArray ? (runtime.dataArray[2] / 255) : 0;
+  const maxRadius = 250;
   
+  runtime.ctx.save();
+  runtime.ctx.translate(cx, cy);
+  runtime.ctx.globalCompositeOperation = 'lighter';
+  
+  // Background glowing rings
+  for (let r = 0; r < 3; r++) {
+    runtime.ctx.beginPath();
+    runtime.ctx.arc(0, 0, maxRadius * 0.8 + r * 50 + bassBin * 30, 0, Math.PI * 2);
+    runtime.ctx.strokeStyle = `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${0.1 - r*0.03})`;
+    runtime.ctx.lineWidth = 2;
+    runtime.ctx.stroke();
+  }
+
+  // Draw radial bars (Cyber-Stadium style)
   for (let i = 0; i < bars; i++) {
     const value = runtime.dataArray[i * step] * runtime.sensitivity;
     const percent = value / 255;
-    const barHeight = Math.max(5, percent * maxBarHeight);
     
-    const x = (i * (barWidth + gap)) + (runtime.canvas.width - (bars * (barWidth + gap))) / 2;
+    // Smooth angle mapping that slowly rotates
+    const angle = (i / bars) * Math.PI * 2 - Math.PI / 2 + time * 0.1;
     
-    // Bottom reflection
-    const yBot = cy + 10;
-    const gradBot = runtime.ctx.createLinearGradient(0, yBot, 0, yBot + barHeight*0.5);
-    gradBot.addColorStop(0, `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, 0.3)`);
-    gradBot.addColorStop(1, 'transparent');
-    runtime.ctx.fillStyle = gradBot;
-    runtime.ctx.fillRect(x, yBot, barWidth, barHeight*0.5);
+    const innerRadius = maxRadius * 0.8;
+    const barHeight = Math.max(5, percent * 400);
+    const outerRadius = innerRadius + barHeight;
     
-    // Main Bar
-    const yTop = cy - barHeight;
-    const gradTop = runtime.ctx.createLinearGradient(0, cy, 0, yTop);
-    gradTop.addColorStop(0, `rgb(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`);
-    gradTop.addColorStop(1, `rgb(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]})`);
+    // Base block geometry
+    runtime.ctx.beginPath();
+    runtime.ctx.moveTo(Math.cos(angle - 0.02) * innerRadius, Math.sin(angle - 0.02) * innerRadius);
+    runtime.ctx.lineTo(Math.cos(angle + 0.02) * innerRadius, Math.sin(angle + 0.02) * innerRadius);
+    runtime.ctx.lineTo(Math.cos(angle + 0.02) * outerRadius, Math.sin(angle + 0.02) * outerRadius);
+    runtime.ctx.lineTo(Math.cos(angle - 0.02) * outerRadius, Math.sin(angle - 0.02) * outerRadius);
+    runtime.ctx.closePath();
     
-    runtime.ctx.fillStyle = gradTop;
-    runtime.ctx.fillRect(x, yTop, barWidth, barHeight);
+    // Neon Gradient
+    const grad = runtime.ctx.createLinearGradient(
+      Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius,
+      Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius
+    );
+    grad.addColorStop(0, `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.9)`);
+    grad.addColorStop(1, `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, 0.1)`);
     
-    // 3D Cap / Floating block
+    runtime.ctx.fillStyle = grad;
+    runtime.ctx.fill();
+    
+    // Edge highlights
+    runtime.ctx.strokeStyle = `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.5)`;
+    runtime.ctx.lineWidth = 1;
+    runtime.ctx.stroke();
+    
+    // Floating Cap
+    const floatDist = outerRadius + percent * 50 + volume * 20;
+    
+    // Draw a fake glow using a translucent circle instead of expensive shadowBlur
+    runtime.ctx.beginPath();
+    runtime.ctx.arc(Math.cos(angle) * floatDist, Math.sin(angle) * floatDist, 6 + percent * 12, 0, Math.PI * 2);
+    runtime.ctx.fillStyle = `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.3)`;
+    runtime.ctx.fill();
+
+    // Solid core
+    runtime.ctx.beginPath();
+    runtime.ctx.arc(Math.cos(angle) * floatDist, Math.sin(angle) * floatDist, 2 + percent * 6, 0, Math.PI * 2);
     runtime.ctx.fillStyle = '#fff';
-    runtime.ctx.shadowBlur = 10;
-    runtime.ctx.shadowColor = `rgb(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]})`;
+    runtime.ctx.fill();
     
-    // Float cap higher based on velocity/volume
-    const floatOff = percent * 20 + volume * 10;
-    runtime.ctx.fillRect(x, yTop - 5 - floatOff, barWidth, 4);
-    runtime.ctx.shadowBlur = 0;
+    // High freq laser beam piercing out
+    if (percent > 0.75) {
+      runtime.ctx.beginPath();
+      runtime.ctx.moveTo(Math.cos(angle) * floatDist, Math.sin(angle) * floatDist);
+      runtime.ctx.lineTo(Math.cos(angle) * (floatDist + 300 * percent), Math.sin(angle) * (floatDist + 300 * percent));
+      runtime.ctx.strokeStyle = `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${percent * 0.8})`;
+      runtime.ctx.lineWidth = 1 + percent * 2;
+      runtime.ctx.stroke();
+    }
   }
+  
+  // Center Core
+  runtime.ctx.beginPath();
+  runtime.ctx.arc(0, 0, maxRadius * 0.75 + volume * 20, 0, Math.PI * 2);
+  runtime.ctx.fillStyle = `rgba(5, 5, 10, 0.9)`;
+  runtime.ctx.fill();
+  
+  runtime.ctx.lineWidth = 4 + bassBin * 12;
+  runtime.ctx.strokeStyle = `rgb(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
+  runtime.ctx.stroke();
+  
+  // Inner waveform ring
+  runtime.ctx.beginPath();
+  for (let i = 0; i <= 128; i++) {
+    const angle = (i / 128) * Math.PI * 2;
+    const val = runtime.dataArray[(i % 128) * 2] / 255;
+    const r = maxRadius * 0.4 + val * 80;
+    if (i === 0) runtime.ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    else runtime.ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+  }
+  runtime.ctx.closePath();
+  runtime.ctx.strokeStyle = `rgb(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]})`;
+  runtime.ctx.lineWidth = 2 + bassBin * 4;
+  runtime.ctx.stroke();
+
+  runtime.ctx.restore();
 }
 
 // Simple particle system state
@@ -496,150 +561,67 @@ function drawVortex(cx, cy, volume, theme) {
 }
 
 function drawKaleidoscope(cx, cy, volume, theme) {
-  const time = performance.now() * 0.0002;
-  const beat = runtime.frameBeatDetected || runtime.beatPulse > 0.5;
-  const isDrop = volume > 0.7;
+  const time = performance.now() * 0.0005;
   const ctx = runtime.ctx;
   
-  // Audio-reactive symmetry expansion (Optimized for performance)
-  let baseSegments = 6;
-  if (volume > 0.5) baseSegments = 8;
-  if (isDrop) baseSegments = 10;
-  
-  // Smoothly interpolate segments to prevent jarring jumps
-  runtime.kalSegments = runtime.kalSegments || baseSegments;
-  runtime.kalSegments += (baseSegments - runtime.kalSegments) * 0.1;
-  const segments = Math.round(runtime.kalSegments);
-  
+  const segments = 8;
   const angleStep = (Math.PI * 2) / segments;
-  const maxRadius = Math.min(cx, cy) * (1.2 + volume * 0.5);
+  const maxRadius = Math.min(cx, cy) * (1.0 + volume * 0.2);
   
-  // Pattern inversion on drops
-  const invertMode = isDrop && Math.sin(time * 10) > 0;
-  
-  ctx.globalCompositeOperation = invertMode ? 'difference' : 'lighter';
+  ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   
-  // Hallucinatory depth illusion / Zoom
-  const zoom = 1 + Math.sin(time) * 0.2 + volume * 0.3;
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.scale(zoom, zoom);
+  ctx.rotate(time * 0.2);
   
-  // Controlled psychedelic rotation
-  ctx.rotate(time * 0.5 + (isDrop ? Math.sin(time*5)*0.1 : 0));
-  
-  // Symmetrical Recursive Pattern Logic
+  // Calculate points once for insane performance
+  const points = [];
+  const numPoints = 20;
+  for (let i = 0; i <= numPoints; i++) {
+    const r = (i / numPoints) * maxRadius;
+    const bin = Math.floor((i / numPoints) * (runtime.analyser.frequencyBinCount / 4));
+    const val = runtime.dataArray ? (runtime.dataArray[bin] / 255) : 0;
+    const yAmp = val * 80 * runtime.sensitivity;
+    const y = Math.sin(i * 0.5 + time * 5) * yAmp;
+    points.push({ x: r, y });
+  }
+
+  // Draw symmetrically
   for (let i = 0; i < segments; i++) {
-    ctx.save();
+    ctx.rotate(angleStep);
     
-    // Mirroring: alternating segments are flipped horizontally
-    const isMirrored = i % 2 !== 0;
-    const rotation = i * angleStep;
-    ctx.rotate(rotation);
-    if (isMirrored) {
-      ctx.scale(1, -1);
-    }
-    
-    // Draw fractal rotational tessellation (Reduced iterations for performance)
-    const iterations = 3;
-    for (let depth = 0; depth < iterations; depth++) {
-      const depthRatio = 1 - (depth / iterations);
-      const rScale = maxRadius * depthRatio;
+    // Draw mirrored halves
+    for (let mirror = 0; mirror < 2; mirror++) {
+      ctx.save();
+      if (mirror === 1) ctx.scale(1, -1);
       
-      // Color pulse spirals
-      const hueShift = (time * 500 + depth * 40 + i * 10) % 360;
-      const layerColor = depth % 2 === 0 
-        ? `hsla(${hueShift}, 80%, 60%, ${0.5 + volume * 0.5})`
-        : `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, ${0.4 + volume * 0.6})`;
-        
-      const secColor = `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${0.3 + volume * 0.5})`;
-      
-      // Pre-calculate points to avoid breaking the path
-      const points = [];
-      for (let b = startBin, stepIdx = 0; b < endBin; b += step, stepIdx++) {
-        const val = runtime.dataArray[b] / 255;
-        const normalizedR = stepIdx / 10; // 0 to 1 along the segment length
-        const x = normalizedR * rScale;
-        const yAmplitude = val * (100 + depth * 50) * runtime.sensitivity;
-        const y = Math.sin(normalizedR * Math.PI * 4 + time * 5) * yAmplitude;
-        points.push({x, y, val, yAmplitude});
-      }
-
       ctx.beginPath();
       for (let j = 0; j < points.length; j++) {
         const pt = points[j];
-        if (j === 0) {
-          ctx.moveTo(pt.x, pt.y);
-        } else {
-          if (depth % 2 === 0) {
-            ctx.lineTo(pt.x, pt.y);
-          } else {
-            const prev = points[j-1];
-            ctx.quadraticCurveTo(prev.x + (pt.x - prev.x)/2, prev.y - pt.yAmplitude/2, pt.x, pt.y);
-          }
-        }
+        if (j === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
       }
       
-      // Stroke the main fractal arm
-      ctx.lineWidth = 1 + (1 - depthRatio) * 3 + volume * 5;
-      const grad = ctx.createLinearGradient(0, 0, rScale, 0);
-      grad.addColorStop(0, layerColor);
-      grad.addColorStop(1, secColor);
+      const grad = ctx.createLinearGradient(0, 0, maxRadius, 0);
+      grad.addColorStop(0, `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.8)`);
+      grad.addColorStop(1, `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, 0.2)`);
+      
       ctx.strokeStyle = grad;
+      ctx.lineWidth = 2 + volume * 4;
       ctx.stroke();
-
-      // Draw all floating diamond nodes in one single batch (insanely fast)
-      ctx.beginPath();
-      for (let j = 0; j < points.length; j++) {
-        const pt = points[j];
-        if (pt.val > 0.6) {
-          const ds = 2 + pt.val * 8;
-          const rA = time * 2 + pt.val;
-          const cosA = Math.cos(rA) * ds;
-          const sinA = Math.sin(rA) * ds;
-          ctx.moveTo(pt.x - sinA, pt.y + cosA);
-          ctx.lineTo(pt.x + cosA, pt.y + sinA);
-          ctx.lineTo(pt.x + sinA, pt.y - cosA);
-          ctx.lineTo(pt.x - cosA, pt.y - sinA);
-          ctx.lineTo(pt.x - sinA, pt.y + cosA);
-        }
-      }
-      ctx.fillStyle = layerColor;
-      ctx.fill();
-      
-      // Hypnotic geometric connectors between arms
-      if (depth > 0) {
-        ctx.beginPath();
-        const cr = rScale * 0.5;
-        ctx.arc(0, 0, cr, 0, angleStep, false);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + volume * 0.2})`;
-        ctx.lineWidth = 1 + val * 2;
-        ctx.stroke();
-      }
+      ctx.restore();
     }
-    
-    ctx.restore();
   }
   
-  // Center Eye / Hexagon Core
+  // Draw core
   ctx.beginPath();
-  const coreSides = 6;
-  const coreR = 20 + volume * 150 * runtime.sensitivity;
-  for(let i=0; i<=coreSides; i++) {
-    const a = (i/coreSides) * Math.PI * 2 + time;
-    const x = Math.cos(a) * coreR;
-    const y = Math.sin(a) * coreR;
-    if(i===0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.fillStyle = `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.5)`;
+  const coreR = 20 + volume * 50;
+  ctx.arc(0, 0, coreR, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, 0.8)`;
   ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2 + volume * 5;
-  ctx.stroke();
-
+  
   ctx.restore();
   ctx.globalCompositeOperation = 'source-over';
 }
@@ -1783,7 +1765,30 @@ function drawPhantomDistrict(cx, cy, volume, theme) {
         runtime.ctx.fillRect(x + 10, y + 10, w, h);
         runtime.ctx.fillStyle = `rgb(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
       }
+      
+      // Floating TLOP Text Aesthetic
+      if (Math.random() > 0.8) {
+        runtime.ctx.fillStyle = '#000';
+        runtime.ctx.font = `${10 + Math.random()*30}px Arial`;
+        runtime.ctx.fillText(Math.random() > 0.5 ? "WHICH / ONE" : "WE ON AN ULTRALIGHT BEAM", x, y + h/2);
+        runtime.ctx.fillStyle = `rgb(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
+      }
     }
+  }
+  
+  // Ecstasy Sub-Horizon
+  const horizonY = cy + 100 + bassBin * 50;
+  runtime.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  runtime.ctx.fillRect(0, horizonY, splitX, runtime.canvas.height - horizonY);
+  
+  for(let i=0; i<5; i++) {
+    const yOff = horizonY + i*40 + (time * 100) % 40;
+    runtime.ctx.beginPath();
+    runtime.ctx.moveTo(0, yOff);
+    runtime.ctx.lineTo(splitX, yOff);
+    runtime.ctx.strokeStyle = `rgba(0, 0, 0, ${0.8 - i*0.1})`;
+    runtime.ctx.lineWidth = 2 + bassBin * 5;
+    runtime.ctx.stroke();
   }
   
   // Aggressive Waveform
@@ -1816,6 +1821,18 @@ function drawPhantomDistrict(cx, cy, volume, theme) {
   runtime.ctx.fillRect(splitX, 0, runtime.canvas.width, runtime.canvas.height);
   runtime.ctx.fillStyle = grad;
   runtime.ctx.fillRect(splitX, 0, runtime.canvas.width, runtime.canvas.height);
+  
+  // Holy Sun
+  const sunRadius = 80 + volume * 50;
+  const sunY = cy - 100 + Math.sin(time*0.5)*20;
+  runtime.ctx.beginPath();
+  runtime.ctx.arc(cx, sunY, sunRadius, 0, Math.PI * 2);
+  const sunGrad = runtime.ctx.createRadialGradient(cx, sunY, 0, cx, sunY, sunRadius);
+  sunGrad.addColorStop(0, '#fff');
+  sunGrad.addColorStop(0.5, `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, 1)`);
+  sunGrad.addColorStop(1, 'transparent');
+  runtime.ctx.fillStyle = sunGrad;
+  runtime.ctx.fill();
   
   // Majestic Halo
   const haloRadius = 150 + energy * 200 * runtime.sensitivity;
@@ -1959,6 +1976,246 @@ export function initRender2DState() {
 
 export { particles, stars, ripples, neuralNodes, bhParticles, matrixDrops };
 
+let parisFlipState = 1;
+let parisZOffset = 0;
+let lastParisDrop = 0;
+let parisCamAngle = 0;
+let parisCollapsePhase = 0;
+let parisStrobeFlash = 0;
+
+function drawParisFracture(cx, cy, volume, theme) {
+  const time = performance.now() * 0.001;
+  const ctx = runtime.ctx;
+  const bassBin = runtime.dataArray ? (runtime.dataArray[2] / 255) : 0;
+  const midBin = runtime.dataArray ? (runtime.dataArray[Math.floor(runtime.analyser.frequencyBinCount * 0.4)] / 255) : 0;
+  const trebleBin = runtime.dataArray ? (runtime.dataArray[Math.floor(runtime.analyser.frequencyBinCount * 0.8)] / 255) : 0;
+  const isDrop = volume > 0.8 && bassBin > 0.85;
+
+  // Dimensional collapse tracking
+  if (isDrop && time - lastParisDrop > 0.8) {
+    parisFlipState = Math.random() > 0.5 ? -1 : 1;
+    parisCollapsePhase = 1.0;
+    parisStrobeFlash = 1.0;
+    lastParisDrop = time;
+  }
+  parisCollapsePhase *= 0.96;
+  parisStrobeFlash *= 0.88;
+  
+  const speed = 5 + volume * 25;
+  parisZOffset = (parisZOffset + speed) % 2000;
+  parisCamAngle += 0.003 + volume * 0.01;
+
+  const gold = `rgb(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
+  const goldA = (a) => `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, ${a})`;
+  const blue = `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${0.3 + trebleBin*0.5})`;
+  const blueA = (a) => `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${a})`;
+  const white = 'rgb(255, 255, 255)';
+
+  // Background: Deep obsidian with fog
+  ctx.fillStyle = `rgba(${theme.bg[0]}, ${theme.bg[1]}, ${theme.bg[2]}, 0.35)`;
+  ctx.fillRect(0, 0, runtime.canvas.width, runtime.canvas.height);
+
+  // Strobe flash on drops
+  if (parisStrobeFlash > 0.1) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${parisStrobeFlash * 0.3})`;
+    ctx.fillRect(0, 0, runtime.canvas.width, runtime.canvas.height);
+  }
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  
+  // Cinematic camera: slow drift + drop-triggered hard cuts
+  let driftAngle = Math.sin(parisCamAngle) * 0.08 + Math.cos(parisCamAngle * 0.7) * 0.05;
+  if (parisCollapsePhase > 0.5) driftAngle += (Math.random() - 0.5) * 0.3;
+  ctx.rotate(driftAngle);
+  ctx.scale(1, parisFlipState);
+  
+  // Zoom pulse on drops
+  const zoomScale = 1 + parisCollapsePhase * 0.15;
+  ctx.scale(zoomScale, zoomScale);
+
+  const segments = 8;
+  const angleStep = (Math.PI * 2) / segments;
+
+  ctx.globalCompositeOperation = 'lighter';
+
+  // === LAYER 1: Deep Recursive Cathedral Lattice ===
+  for (let depth = 0; depth < 3; depth++) {
+    ctx.save();
+    ctx.rotate(depth * 0.05 + time * 0.02 * (depth + 1));
+    ctx.globalAlpha = 0.6 - depth * 0.15;
+    
+    for (let i = 0; i < segments; i++) {
+      ctx.rotate(angleStep);
+      
+      for (let mirror = 0; mirror < 2; mirror++) {
+        ctx.save();
+        if (mirror === 1) ctx.scale(1, -1);
+        
+        // Cathedral grid framework
+        ctx.beginPath();
+        for(let g = 0; g < 8; g++) {
+          let gz = (g * 250 - parisZOffset + depth * 100);
+          gz = ((gz % 2000) + 2000) % 2000;
+          const distScale = Math.pow(gz / 2000, 2);
+          const gridR = 30 + distScale * 1000;
+          
+          ctx.moveTo(0, gridR);
+          ctx.lineTo(gridR * Math.sin(Math.PI/segments), gridR * Math.cos(Math.PI/segments));
+          ctx.lineTo(gridR, 0);
+        }
+        ctx.strokeStyle = isDrop ? (Math.random() > 0.7 ? `rgba(255, 30, 30, 0.8)` : white) : `rgba(255, 255, 255, ${0.06 + trebleBin*0.15})`;
+        ctx.lineWidth = 1 + bassBin * 2;
+        ctx.stroke();
+
+        // Fracture Pillars (obsidian columns)
+        const numPillars = 5;
+        for(let p = 0; p < numPillars; p++) {
+          let pz = (p * (2000 / numPillars) - parisZOffset + depth * 200) % 2000;
+          if (pz < 0) pz += 2000;
+          
+          const pScale = Math.pow(pz / 2000, 2.5);
+          const px = 15 + pScale * 500 + Math.sin(time*1.5 + p + depth)*15;
+          const py = 5 + pScale * 250;
+          const pWidth = 8 + pScale * 120 * (1 + bassBin * 0.5);
+          const pHeight = 40 + pScale * 600 * (1 + bassBin * 0.3);
+
+          // Obsidian body
+          ctx.fillStyle = `rgba(${theme.bg[0]+10}, ${theme.bg[1]+10}, ${theme.bg[2]+10}, ${0.8 - depth * 0.2})`;
+          ctx.fillRect(px, py, pWidth, pHeight);
+          
+          // Gold edge trim
+          ctx.strokeStyle = (isDrop && Math.random()>0.85) ? 'rgba(255,30,30,0.9)' : goldA(0.6 - depth * 0.15);
+          ctx.lineWidth = 1.5 + pScale * 4;
+          ctx.strokeRect(px, py, pWidth, pHeight);
+          
+          // Interior blue glow panel
+          ctx.fillStyle = blueA(0.15 + midBin * 0.2);
+          ctx.fillRect(px + 2, py + 2, pWidth/3, pHeight - 4);
+          
+          // Gold fracture beam (shoots from pillar top on bass)
+          if (bassBin > 0.6 && pScale > 0.1) {
+            ctx.beginPath();
+            ctx.moveTo(px + pWidth/2, py);
+            ctx.lineTo(px + pWidth/2 + (Math.random()-0.5)*30, py - 100 * bassBin);
+            ctx.strokeStyle = goldA(bassBin * 0.6);
+            ctx.lineWidth = 1 + bassBin * 3;
+            ctx.stroke();
+          }
+        }
+        
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
+  // === LAYER 2: Gold Shockwave Bursts ===
+  if (isDrop) {
+    for (let sw = 0; sw < 3; sw++) {
+      ctx.beginPath();
+      ctx.arc(0, 0, (50 + sw * 80) * (1 + parisCollapsePhase * 3), 0, Math.PI * 2);
+      ctx.strokeStyle = goldA(parisCollapsePhase * (0.8 - sw * 0.2));
+      ctx.lineWidth = 8 + bassBin * 15 - sw * 3;
+      ctx.stroke();
+    }
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${parisCollapsePhase * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15 + bassBin * 60, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // === LAYER 3: Rotating Star Crest ===
+  ctx.beginPath();
+  for (let m = 0; m < 16; m++) {
+    const angle = (m / 16) * Math.PI * 2 - time * 0.15;
+    const r = (m % 2 === 0 ? 350 : 180) + volume * 120;
+    if (m === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = blueA(0.15 + bassBin * 0.1);
+  ctx.lineWidth = 8 + bassBin * 5;
+  ctx.stroke();
+
+  // === LAYER 4: Central Mandala ===
+  for (let ring = 0; ring < 3; ring++) {
+    ctx.beginPath();
+    const sides = isDrop ? 10 : 6 + ring * 2;
+    for (let m = 0; m <= sides; m++) {
+      const angle = (m / sides) * Math.PI * 2 + time * (0.3 + ring * 0.2);
+      const r = (20 + ring * 40) + volume * (150 - ring * 30);
+      if (m === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+      else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = ring === 0 ? gold : (ring === 1 ? white : blue);
+    ctx.lineWidth = 2 + bassBin * (6 - ring * 2);
+    ctx.stroke();
+  }
+
+  // === LAYER 5: Dot Matrix Grid ===
+  ctx.fillStyle = goldA(0.4);
+  for(let dx = -350; dx <= 350; dx += 50) {
+    for(let dy = -350; dy <= 350; dy += 50) {
+      if (dx*dx + dy*dy > 60000) continue;
+      const dotScale = Math.sin(dx * 0.008 + time * 2) * Math.cos(dy * 0.008 + time * 1.5);
+      ctx.beginPath();
+      ctx.arc(dx, dy, 1.5 + dotScale * 2 + bassBin * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // === LAYER 6: Glass Shards ===
+  for (let s = 0; s < 40; s++) {
+    let sz = ((s * 25) - parisZOffset * 1.5) % 2000;
+    if (sz < 0) sz += 2000;
+    const sScale = Math.pow(sz / 2000, 1.5);
+    if (sScale > 0.01) {
+      const r = 80 + sScale * 1400;
+      const angle = (s / 40) * Math.PI * 2 + time * 0.08 * (s % 2 === 0 ? 1 : -1);
+      
+      ctx.save();
+      ctx.translate(Math.cos(angle)*r, Math.sin(angle)*r);
+      ctx.rotate(time * 1.5 + s);
+      ctx.beginPath();
+      ctx.moveTo(0, -8 - sScale*70);
+      ctx.lineTo(4 + sScale*25, 0);
+      ctx.lineTo(0, 8 + sScale*70);
+      ctx.lineTo(-4 - sScale*25, 0);
+      ctx.closePath();
+      ctx.fillStyle = s % 4 === 0 ? gold : (s % 4 === 1 ? blue : (s % 4 === 2 ? white : goldA(0.5)));
+      ctx.globalAlpha = sScale * 0.8;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // === LAYER 7: Concentric Rings ===
+  for (let r = 0; r < 4; r++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, (100 + r * 60) + bassBin * 30 + midBin * 20, 0, Math.PI * 2);
+    ctx.setLineDash([8 + bassBin*15, 15 + r * 5]);
+    ctx.strokeStyle = r % 2 === 0 ? blueA(0.3 + trebleBin * 0.3) : goldA(0.2 + trebleBin * 0.2);
+    ctx.lineWidth = 1.5 + trebleBin * 3;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // === LAYER 8: Reflective Fog (mid-reactive) ===
+  const fogGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
+  fogGrad.addColorStop(0, `rgba(${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]}, ${midBin * 0.08})`);
+  fogGrad.addColorStop(0.5, `rgba(${theme.secondary[0]}, ${theme.secondary[1]}, ${theme.secondary[2]}, ${midBin * 0.04})`);
+  fogGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(-600, -600, 1200, 1200);
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
 const DRAW_FN = {
   synthwave: drawSynthwave,
   oscilloscope: drawOscilloscope,
@@ -1986,6 +2243,7 @@ const DRAW_FN = {
   neuralbloom: drawNeuralBloom,
   iron_reckoning: drawIronReckoning,
   phantom_district: drawPhantomDistrict,
+  paris_fracture: drawParisFracture,
 };
 
 export function drawShape2D(shape, cx, cy, volume, theme) {
@@ -2031,4 +2289,5 @@ export {
   drawIronReckoning,
   drawPhantomDistrict,
   drawCurrents,
+  drawParisFracture,
 };

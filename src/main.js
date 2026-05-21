@@ -14,6 +14,10 @@ import { renderFrame, preloadVisualizers, isWebGLShape } from './engine/visualiz
 import { updateVJ } from './engine/vjEngine.js';
 import { initDebugHUD, updateDebugHUD } from './ui/debugHUD.js';
 import { disposeGlowAtlas } from './render/glowAtlas.js';
+import { handlePerformanceKey, togglePerformanceGrid } from './ui/performanceGrid.js';
+import { initRecorder, showRecordBtn, hideRecordBtn, toggleRecording } from './ui/recorder.js';
+import { initThemeBuilder, toggleThemeBuilder } from './ui/themeBuilder.js';
+import { apply2DPostProcessing } from './engine/postProcessing.js';
 
 const dom = {
   canvas: document.getElementById('visualizer'),
@@ -56,21 +60,23 @@ const dom = {
 
 bindDOM(dom);
 initDebugHUD(dom);
+initRecorder();
+initThemeBuilder();
 
 runtime.sensitivity = 1.5;
-runtime.currentTheme = initThemes(localStorage.getItem('aura_theme') || 'retrowave');
-runtime.currentShape = localStorage.getItem('aura_shape') || 'synthwave';
+runtime.currentTheme = initThemes(localStorage.getItem('synestra_theme') || 'retrowave');
+runtime.currentShape = localStorage.getItem('synestra_shape') || 'synthwave';
 dom.themeSelector.value = runtime.currentTheme;
 dom.shapeSelector.value = runtime.currentShape;
 
 function resetIdleTimer() {
-  document.body.classList.remove('ui-hidden');
+  document.body.classList.remove('hide-cursor');
   dom.uiLayer.classList.remove('ui-hidden');
   dom.nowPlaying.classList.remove('ui-hidden');
   clearTimeout(runtime.idleTimer);
   if (runtime.isVisualizing) {
     runtime.idleTimer = setTimeout(() => {
-      document.body.classList.add('ui-hidden');
+      document.body.classList.add('hide-cursor');
       dom.uiLayer.classList.add('ui-hidden');
       dom.nowPlaying.classList.add('ui-hidden');
     }, 3000);
@@ -152,6 +158,26 @@ dom.autoVJToggle.addEventListener('change', (e) => {
 });
 dom.autoColorToggle.addEventListener('change', (e) => { runtime.isAutoColor = e.target.checked; });
 dom.mouseInteractionToggle.addEventListener('change', (e) => { runtime.isMouseInteractive = e.target.checked; });
+
+// Performance Grid + Hotkeys
+window.addEventListener('keydown', (e) => {
+  // Performance grid handles TAB and letter/number keys
+  if (handlePerformanceKey(e, dom)) return;
+  
+  // CTRL+R = Toggle recording
+  if (e.ctrlKey && e.key === 'r') {
+    e.preventDefault();
+    toggleRecording();
+    return;
+  }
+  
+  // CTRL+T = Theme builder
+  if (e.ctrlKey && e.key === 't') {
+    e.preventDefault();
+    toggleThemeBuilder();
+    return;
+  }
+});
 
 async function ensureWebGL() {
   const m = await import('./render/render3D.js');
@@ -248,6 +274,7 @@ function startVisualization() {
   dom.artBackground.classList.add('hidden');
   runtime.isVisualizing = true;
   preloadVisualizers();
+  showRecordBtn();
   if (isWebGLShape(runtime.currentShape)) {
     ensureWebGL();
   }
@@ -267,7 +294,7 @@ async function stopAudio() {
   dom.audioPlayer.pause();
   dom.audioPlayer.currentTime = 0;
   clearTimeout(runtime.idleTimer);
-  document.body.classList.remove('ui-hidden');
+  document.body.classList.remove('hide-cursor');
   clearBodyTransform();
   dom.nowPlaying.classList.add('hidden');
   resetWebGLCamera();
@@ -283,6 +310,7 @@ async function stopAudio() {
   dom.fullscreenBtn.classList.add('hidden');
   dom.artBackground.classList.remove('hidden');
   runtime.ctx.clearRect(0, 0, runtime.canvas.width, runtime.canvas.height);
+  hideRecordBtn();
 }
 
 async function draw() {
@@ -309,6 +337,11 @@ async function draw() {
     await ensureWebGL();
   }
   await renderFrame(normalizedVolume, trebleBin);
+
+  // 2D Post-Processing Pass (bloom, grain, vignette)
+  if (!isWebGLShape(runtime.currentShape)) {
+    apply2DPostProcessing(runtime.ctx, runtime.canvas.width, runtime.canvas.height, normalizedVolume);
+  }
 
   const processingMs = performance.now() - processStart;
   updateDebugHUD(processingMs);
